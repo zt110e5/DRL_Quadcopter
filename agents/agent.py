@@ -1,4 +1,4 @@
-from keras import layers, models, optimizers
+from keras import layers, models, optimizers, initializers, regularizers
 from keras import backend as K
 import numpy as np
 import random
@@ -29,13 +29,13 @@ class Actor:
         states = layers.Input(shape=(self.state_size,), name='states')
 
         # 隐藏层
-        net = layers.Dense(units=32, activation='relu')(states)
+        net = layers.Dense(units=32, kernel_regularizer=regularizers.l2(0.01),activity_regularizer=regularizers.l1(0.01), activation='relu')(states)
         net = layers.BatchNormalization()(net)
         net = layers.Dropout(0.5)(net)
-        net = layers.Dense(units=64, activation='relu')(net)
+        net = layers.Dense(units=64, kernel_regularizer=regularizers.l2(0.01),activity_regularizer=regularizers.l1(0.01), activation='relu')(net)
         net = layers.BatchNormalization()(net)
         net = layers.Dropout(0.5)(net)
-        net = layers.Dense(units=32, activation='relu')(net)
+        net = layers.Dense(units=32, kernel_regularizer=regularizers.l2(0.01),activity_regularizer=regularizers.l1(0.01), activation='relu')(net)
         net = layers.BatchNormalization()(net)
         net = layers.Dropout(0.5)(net)
 
@@ -55,7 +55,7 @@ class Actor:
         loss = K.mean(-action_gradients * actions)
 
         # 优化策略
-        optimizer = optimizers.Adam()
+        optimizer = optimizers.Adam(lr=0.0001)
         updates_op = optimizer.get_updates(params=self.model.trainable_weights, loss=loss)
         self.train_fn = K.function(
             inputs=[self.model.input, action_gradients, K.learning_phase()],
@@ -84,24 +84,24 @@ class Critic:
         actions = layers.Input(shape=(self.action_size,), name='actions')
 
         # 隐藏层-->state 
-        net_states = layers.Dense(units=32, activation='relu')(states)
+        net_states = layers.Dense(units=32,kernel_regularizer=regularizers.l2(0.01),activity_regularizer=regularizers.l1(0.01), activation='relu')(states)
         net_states = layers.BatchNormalization()(net_states)
         net_states = layers.Dropout(0.5)(net_states)
-        net_states = layers.Dense(units=64, activation='relu')(net_states)
+        net_states = layers.Dense(units=64,kernel_regularizer=regularizers.l2(0.01),activity_regularizer=regularizers.l1(0.01), activation='relu')(net_states)
         net_states = layers.BatchNormalization()(net_states)
         net_states = layers.Dropout(0.5)(net_states)
-        net_states = layers.Dense(units=32, activation='relu')(net_states)
+        net_states = layers.Dense(units=32,kernel_regularizer=regularizers.l2(0.01),activity_regularizer=regularizers.l1(0.01), activation='relu')(net_states)
         net_states = layers.BatchNormalization()(net_states)
         net_states = layers.Dropout(0.5)(net_states)
 
         # 隐藏层-->action
-        net_actions = layers.Dense(units=32, activation='relu')(actions)
+        net_actions = layers.Dense(units=32,kernel_regularizer=regularizers.l2(0.01),activity_regularizer=regularizers.l1(0.01), activation='relu')(actions)
         net_actions = layers.BatchNormalization()(net_actions)
         net_actions = layers.Dropout(0.5)(net_actions)
-        net_actions = layers.Dense(units=64, activation='relu')(net_actions)
+        net_actions = layers.Dense(units=64,kernel_regularizer=regularizers.l2(0.01),activity_regularizer=regularizers.l1(0.01), activation='relu')(net_actions)
         net_actions = layers.BatchNormalization()(net_actions)
         net_actions = layers.Dropout(0.5)(net_actions)
-        net_actions = layers.Dense(units=32, activation='relu')(net_actions)
+        net_actions = layers.Dense(units=32,kernel_regularizer=regularizers.l2(0.01),activity_regularizer=regularizers.l1(0.01), activation='relu')(net_actions)
         net_actions = layers.BatchNormalization()(net_actions)
         net_actions = layers.Dropout(0.5)(net_actions)
 
@@ -116,7 +116,7 @@ class Critic:
         self.model = models.Model(inputs=[states, actions], outputs=Q_values)
 
         # 优化策略
-        optimizer = optimizers.Adam()
+        optimizer = optimizers.Adam(lr=0.0001)
         self.model.compile(optimizer=optimizer, loss='mse')
 
         # Compute action gradients (derivative of Q values w.r.t. to actions)
